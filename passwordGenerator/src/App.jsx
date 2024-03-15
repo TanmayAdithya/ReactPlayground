@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const App = () => {
   const [length, setLength] = useState(8);
@@ -6,8 +6,29 @@ const App = () => {
   const [symbolsIncluded, setSymbolsIncluded] = useState(false);
   const [password, setPassword] = useState('');
 
-  const generatePassword = () => {
-    // logic
+  const passRef = useRef(null);
+
+  const generatePassword = useCallback(() => {
+    let pass = '';
+    let str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+    if (numbersIncluded) str += '0123456789';
+    if (symbolsIncluded) str += '!@#$%^&*()_+';
+
+    for (let i = 0; i < length; i++) {
+      const char = Math.floor(Math.random() * str.length + 1);
+
+      pass += str.charAt(char);
+    }
+
+    setPassword(pass);
+  }, [length, numbersIncluded, symbolsIncluded]);
+
+  useEffect(() => generatePassword, [length, numbersIncluded, symbolsIncluded]);
+
+  const copyTextToClipboard = () => {
+    window.navigator.clipboard.writeText(password);
+    passRef.current?.select();
   };
 
   return (
@@ -18,11 +39,15 @@ const App = () => {
           <input
             type="text"
             value={password}
-            className="outline-none w-full py-1 px-3"
+            className="outline-none w-full py-1 px-3 text-primary"
             placeholder="Password"
             readOnly
+            ref={passRef}
           />
-          <button className="outline-none bg-tertiary text-accent px-3 py-0.5 shrink-0">
+          <button
+            className="outline-none bg-tertiary text-accent px-3 py-0.5 shrink-0"
+            onClick={copyTextToClipboard}
+          >
             copy
           </button>
         </div>
